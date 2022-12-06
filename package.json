@@ -1,0 +1,23 @@
+{
+    "name": "param-validator.js",
+    "version": "1.0.0",
+    "description": "validate params in Object",
+    "homepage": "https://github.com/MatchOvO/param-validator.js",
+    "author": "MatchOvO(https://github.com/MatchOvO/)",
+    "keywords": [
+        "param",
+        "validator",
+        "validate",
+        "data",
+        "param-validator"
+    ],
+    "main": "./index.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/MatchOvO/param-validator.js"
+    },
+    "bugs": {
+        "url": "https://github.com/MatchOvO/param-validator.js/issues"
+    },
+    "license": "MIT"
+}
