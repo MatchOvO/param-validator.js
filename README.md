@@ -1,7 +1,7 @@
 # Param-Validator.js
 * Author: [MatchOvO](https://github.com/MatchOvO/)
 * Repository: [param-validator.js](https://github.com/MatchOvO/param-validator.js)
-* Current Version: `1.1.0`
+* Current Version: `1.1.4`
 * An easy and lightweight way to validate params in Javascript Object.
 You can use it to validate the http request data in Node.js or the form data in web
 min.js is less than 10k, so that you can use it in your project without any burden.
