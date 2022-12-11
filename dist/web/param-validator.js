@@ -275,9 +275,9 @@ class ParamValidator {
          */
         if (!this._isType(fieData, Array))
             throw new ValidatorErr(fie, 'type', moduleName)
-        if (conf.hasOwnProperty('ArrItems') || conf.hasOwnProperty('items')) {
+        if (conf.hasOwnProperty('arrItems') || conf.hasOwnProperty('items')) {
             const arrayModelScope = {}
-            arrayModelScope[fie] = conf.ArrItems || conf.items
+            arrayModelScope[fie] = conf.arrItems || conf.items
             fieData.forEach(item => {
                 const itemScope = {}
                 itemScope[fie] = item
@@ -367,3 +367,4 @@ function ValidatorDeepClone(copyObj, toObj) {
     }
     return newObj;
 }
+

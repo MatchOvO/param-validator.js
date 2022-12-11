@@ -315,6 +315,10 @@ console.log(validator.test({
     * `items`: `Object`
         * Using this param, you can provide a Data Model to validate the children of this Array. 
       >Warn: The items here is different with [items](#object) in Object
+    * `arrItems`: `Object` (After Version 1.1.0)
+      * This property's function is the same as "items".
+> In order to distinguish "items" in Object and Array, we add `objItems | arrItems` you can use after the version of 1.1.0.
+We recognize you to use this property when a data model you set can be Object or Array( type: [Object,Array] )
 ```js
 const peopleModel = {
     name:{
