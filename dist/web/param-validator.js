@@ -100,9 +100,12 @@ class ParamValidator {
             const conf = modelScope[field]
             this._requiredC(conf)
             if (!data.hasOwnProperty(field) && conf.required) throw new ValidatorErr(field, 'required', moduleName)
-            if (!data.hasOwnProperty(field) && !conf.required) data[field] = conf.default
-            const fieldData = data[field]
             const typeArr = this._isType(conf.type, Array) ? conf.type : [conf.type]
+            if (!data.hasOwnProperty(field) && !conf.required) {
+                data[field] = conf.default
+                typeArr.push(undefined)
+            }
+            const fieldData = data[field]
             try {
                 typeArr.forEach((type, index) => {
                     try {
@@ -122,6 +125,9 @@ class ParamValidator {
                             case Array:
                                 this._arrayV(field, conf, fieldData)
                                 break
+                            // case 'undefined':
+                            //     this._emptyV(field, conf, fieldData, undefined)
+                            //     break
                             default:
                                 if (!type) {
 

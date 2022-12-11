@@ -1,7 +1,8 @@
 const ParamValidator = require('./param-validator.js')
 const peopleModel = {
     name:{
-        type:[String,Number]
+        type:[String,Number,undefined],
+        required: false
     },
     things:{
         type:[Array,Object],
@@ -33,9 +34,9 @@ const person = {
     things:[{name:'Macbook',brand:'Apple'},{name:'Iphone',brand:'Apple'}]
 }
 const person2 = {
-    name:0,
+    name:'Match',
     things:{
-        test:''
+        test:'M'
     }
 }
-console.log( validator.check(person) )// true
+console.log( validator.check(person2) )// true
