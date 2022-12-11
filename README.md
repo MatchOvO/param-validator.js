@@ -1,6 +1,7 @@
 # Param-Validator.js
 * Author: [MatchOvO](https://github.com/MatchOvO/)
 * Repository: [param-validator.js](https://github.com/MatchOvO/param-validator.js)
+* Current Version: `1.1.0`
 * An easy and lightweight way to validate params in Javascript Object.
 You can use it to validate the http request data in Node.js or the form data in web
 min.js is less than 10k, so that you can use it in your project without any burden.
@@ -212,6 +213,8 @@ console.log( validator.test(data2) ) // true
     * `regexp`: `RegExp`
         * To specify the RegExp that param need to match
         * default: `true`
+    * `empty`: `Boolean`
+      * To specific the if the String can be an empty String
 ```js
 const dataModel = {
     name:{
@@ -265,6 +268,10 @@ console.log(validator.test({
     * `items`: `Object`
         * Using this param, you can provide the children of this Object. You can also use Data Model to match these children.
       [param-validator.js]() make a promise that `emitter` in validator will do recursion to reach the whole Data Model
+    * `objItems`: `Object` (After Version 1.1.0)
+      * This property's function is the same as "items". 
+> In order to distinguish "items" in Object and Array, we add `objItems | arrItems` you can use after the version of 1.1.0. 
+We recognize you to use this property when a data model you set can be Object or Array( type: [Object,Array] )
 ```js
 const peopleModel = {
     person:{
@@ -428,6 +435,7 @@ console.log(newObj)// {name:"Match",age:18}
      * Error Type
      *  -required   必须的字段为空
      *  -type       类型错误
+     *  -empty      字符串为空错误
      *  -regexp     字符串正则错误
      *  -range      值的范围错误
      *  -int        数值整形错误

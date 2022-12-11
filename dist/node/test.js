@@ -1,23 +1,29 @@
-const ParamValidator = require('./param-validator.min')
-const dataModel = {
+const ParamValidator = require('./param-validator.min.js')
+const peopleModel = {
     name:{
-        type:String,
-        regexp:/^[A-Z]/
+        type:String
     },
-    age:{
-        type:[Number,String],
-        required:false,
-        int:true,
-        range:{
-            ">=":0,
-            "<":200
-        },
-        default:18
+    things:{
+        type:Array,
+        items:{
+            type:Object,
+            objItems:{
+                name: {
+                    type:String,
+                    empty: false
+                },
+                brand:{
+                    type:String
+                }
+            }
+        }
     }
 }
-const validator = new ParamValidator(dataModel)
-const oriObj = {
-    name: 'Match'
+
+const validator = new ParamValidator(peopleModel)
+
+const person = {
+    name:"Match",
+    things:[{name:'',brand:'Apple'},{name:'Iphone',brand:'Apple'}]
 }
-const newObj = validator.construct(oriObj)
-console.log(newObj)// {name:"Match",age:18}
+console.log( validator.check(person) )// true

@@ -1,5 +1,5 @@
 //! param-validator.js
-//! version : 1.0.0
+//! version : 1.1.0
 //! authors : MatchOvO
 //! license : MIT
 //! https://github.com/MatchOvO/param-validator.js
@@ -57,13 +57,16 @@ class ParamValidator {
                 data: outData
             }
         } catch (e) {
-            return {
-                result: false,
-                errorField: e.errorField,
-                errorType: e.errorType,
-                errorModule: e.errorModule,
-                msg: e.msg
+            if (e.constructor === ValidatorErr){
+                return {
+                    result: false,
+                    errorField: e.errorField,
+                    errorType: e.errorType,
+                    errorModule: e.errorModule,
+                    msg: e.msg
+                }
             }
+            throw e
         }
     }
 
@@ -156,9 +159,11 @@ class ParamValidator {
         /**
          * String type validator
          */
-        const { regexp, range } = conf
+        const { regexp, range, empty } = conf
         if (!this._isType(fieData, String))
             throw new ValidatorErr(fie, 'type', moduleName)
+        if (conf.hasOwnProperty('empty') && !conf.empty && fieData === '')
+            throw new ValidatorErr(fie,'empty',moduleName)
         if (conf.hasOwnProperty('regexp') && !regexp.test(fieData))
             throw new ValidatorErr(fie, 'regexp', moduleName)
         if (conf.hasOwnProperty('range')) {
@@ -257,8 +262,9 @@ class ParamValidator {
          */
         if (!this._isType(fieData, Object))
             throw new ValidatorErr(fie, 'type', moduleName)
-        if (conf.hasOwnProperty('items')) {
-            this._emitter(conf.items, fieData)
+        if (conf.hasOwnProperty('objItems') || conf.hasOwnProperty('items')) {
+            const itemsModel = conf.objItems || conf.items
+            this._emitter(itemsModel, fieData)
         }
     }
 
@@ -269,9 +275,9 @@ class ParamValidator {
          */
         if (!this._isType(fieData, Array))
             throw new ValidatorErr(fie, 'type', moduleName)
-        if (conf.hasOwnProperty('items')) {
+        if (conf.hasOwnProperty('ArrItems') || conf.hasOwnProperty('items')) {
             const arrayModelScope = {}
-            arrayModelScope[fie] = conf.items
+            arrayModelScope[fie] = conf.ArrItems || conf.items
             fieData.forEach(item => {
                 const itemScope = {}
                 itemScope[fie] = item
@@ -319,6 +325,7 @@ class ValidatorErr {
      * Error Type
      *  -required   必须的字段为空
      *  -type       类型错误
+     *  -empty      字符串为空错误
      *  -regexp     字符串正则错误
      *  -unknown    未知错误
      *  -range      值的范围错误
