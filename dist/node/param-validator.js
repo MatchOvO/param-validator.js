@@ -138,15 +138,17 @@ class ParamValidator {
                                 }
                                 break
                         }
-
+                        /**
+                         * 无错误抛出成功消息
+                         */
+                        throw new ValidatorSuccess()
                     } catch (e) {
-                        if (index + 1 === typeArr.length) throw e
+                        if (e.name === 'success') throw e
+                        if (index + 1 === typeArr.length)
+                            throw e
                     }
-                    /**
-                     * 无错误抛出成功消息
-                     */
-                    throw new ValidatorSuccess()
                 })
+
             } catch (n) {
                 if (n.name !== 'success') throw n
             }
@@ -162,7 +164,7 @@ class ParamValidator {
         const { regexp, range, empty } = conf
         if (!this._isType(fieData, String))
             throw new ValidatorErr(fie, 'type', moduleName)
-        if (conf.hasOwnProperty('empty') && !conf.empty && fieData === '')
+        if (conf.hasOwnProperty('empty') && !empty && fieData === '')
             throw new ValidatorErr(fie,'empty',moduleName)
         if (conf.hasOwnProperty('regexp') && !regexp.test(fieData))
             throw new ValidatorErr(fie, 'regexp', moduleName)
