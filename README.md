@@ -238,8 +238,8 @@ const data2 = {
 console.log( validator.test(data1) ) // true
 console.log( validator.test(data2) ) // true
 ```
-> When a param specify more than one type,such as { type: [Number,Array] } It is not suggested to use the special config that is written below.
-> If you read the source code which is easy, and understand how it works, I will suggest you to use the special config below to help improve your project
+> When a param specify more than one type,such as { type: [ Number, Array ] } 
+> You also can use the option blow.
 * #### String
     * `range`: `Array | val`
         * The specific value the param can be, you can provide an Array or single value
@@ -305,7 +305,7 @@ console.log(validator.test({
     * `objItems`: `Object` (After Version 1.1.0)
       * This property's function is the same as "items". 
 > In order to distinguish "items" in Object and Array, we add `objItems | arrItems` you can use after the version of 1.1.0. 
-We recognize you to use this property when a data model you set can be Object or Array( type: [Object,Array] )
+We recommend you to use this property when a data model you set can be Object or Array( type: [Object,Array] )
 ```js
 const peopleModel = {
     person:{
@@ -352,7 +352,7 @@ console.log(validator.test({
     * `arrItems`: `Object` (After Version 1.1.0)
       * This property's function is the same as "items".
 > In order to distinguish "items" in Object and Array, we add `objItems | arrItems` you can use after the version of 1.1.0.
-We recognize you to use this property when a data model you set can be Object or Array( type: [Object,Array] )
+We recommend you to use this property when a data model you set can be Object or Array( type: [Object,Array] )
 ```js
 const peopleModel = {
     name:{
