@@ -1,7 +1,7 @@
 # Param-Validator.js
 * Author: [MatchOvO](https://github.com/MatchOvO/)
 * Repository: [param-validator.js](https://github.com/MatchOvO/param-validator.js)
-* Current Version: `1.1.4`
+* Current Version: `1.2.0`
 * An easy and lightweight way to validate params in Javascript Object.
 You can use it to validate the http request data in Node.js or the form data in web
 min.js is less than 10k, so that you can use it in your project without any burden.
@@ -9,11 +9,19 @@ And ParamValidator.js can distinguish such as "Object","Array","null".
 All you need to do is to define a "dataModel" in a simple way like:
 ```js
 const dataModel = {
-    string:{
+    anString: String,
+    anNumber: Number,
+    anObject: Object
+}
+```
+Or more specific config like:
+```js
+const dataModel = {
+    anString:{
         type:String,
         regexp:/[A-Z]+/
     },
-    number:{
+    anNumber:{
         type:Number,
         int:true,
         range:{
@@ -21,10 +29,10 @@ const dataModel = {
             ">":0
         }
     },
-    obj:{
+    anObject:{
         type:Object
     },
-    array:{
+    anArray:{
         type:Array
     }
 }
@@ -45,12 +53,8 @@ const ParamValidator = require('param-validator.js')
 ### construct validator model (构建校验模型)
 ```js
 const dataModel = {
-    name:{
-        type:String
-    },
-    age:{
-        type:Number
-    }
+    name: String,
+    age: Number
 }
 const validator = new ParamValidator(dataModel)
 ```
@@ -62,7 +66,7 @@ const data = {
     age:20
 }
 const result = validator.test(data)
-console.log(result)// return 'true' when data is matched width dataModel
+console.log(result)// return 'true' when data is matched with dataModel
 ```
 ## API
 * [ParamValidator](#paramvalidator) `constructor`
@@ -70,6 +74,7 @@ console.log(result)// return 'true' when data is matched width dataModel
   * [ParamValidator.isType()](#paramvalidatoristypevaltype)
   * [ParamValidator.deepClone()](#paramvalidatordeepclonecopyobjectnewobject)
 * [Data Model](#data-model) `dataModel`
+  * [simple model](#simple-model)
   * [basic](#basic)
   * [String](#string)
   * [Number](#number)
@@ -157,6 +162,35 @@ Q: What is Data Model?
 > "An Object contains 'name' and 'age' these two params, and 'name' needed as String,'age' needed as Number "
 > 
 > You can follow this doc to create a Data Model for validator
+* #### simple model
+  * After the version of 1.2.0
+  * You can construct a data model with a simple way like:
+```js
+const personModel_1 = {
+    name: String,
+    age: Number
+}
+
+// You can also use an Array, this means the param can be a Number or a String
+const personModel_2 = {
+    name: String,
+    age: [Number, String]
+}
+```
+> This way to construct a data model is very simple and quick. 
+> If you don't need to specify other specific option, you are suggested to use this way.
+> 
+> You can mix the simple way and the complex way when you construct a data model, it is allowed and welcomed
+```js
+const personModel = {
+    name: String,
+    age: {
+        type: [Number, String],
+        int: true
+    }
+}
+```
+
 * #### basic
   * `type`: `Type | Type-Array`
     * To specify the type of param

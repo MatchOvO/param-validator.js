@@ -60,10 +60,7 @@ class ParamValidator {
             if (e.constructor === ValidatorErr){
                 return {
                     result: false,
-                    errorField: e.errorField,
-                    errorType: e.errorType,
-                    errorModule: e.errorModule,
-                    msg: e.msg
+                    ...e
                 }
             }
             throw e
@@ -97,9 +94,9 @@ class ParamValidator {
         const moduleName = 'emitter'
         const data = dataScope
         for (const field in modelScope) {
-            const conf = modelScope[field]
-            this._requiredC(conf)
-            if (!data.hasOwnProperty(field) && conf.required) throw new ValidatorErr(field, 'required', moduleName)
+            let conf = modelScope[field]
+            conf = this._completeConfig(conf)
+            if (!data.hasOwnProperty(field) && conf.required) throw new ValidatorErr(field, 'required', moduleName, conf)
             const typeArr = this._isType(conf.type, Array) ? conf.type : [conf.type]
             if (!data.hasOwnProperty(field) && !conf.required) {
                 data[field] = conf.default
@@ -139,7 +136,7 @@ class ParamValidator {
 
                                 } else {
 
-                                    throw new ValidatorErr(field, 'model', moduleName)
+                                    throw new ValidatorErr(field, 'model', moduleName, conf)
 
                                 }
                                 break
@@ -169,11 +166,11 @@ class ParamValidator {
          */
         const { regexp, range, empty } = conf
         if (!this._isType(fieData, String))
-            throw new ValidatorErr(fie, 'type', moduleName)
+            throw new ValidatorErr(fie, 'type', moduleName, conf)
         if (conf.hasOwnProperty('empty') && !empty && fieData === '')
-            throw new ValidatorErr(fie,'empty',moduleName)
+            throw new ValidatorErr(fie,'empty',moduleName, conf)
         if (conf.hasOwnProperty('regexp') && !regexp.test(fieData))
-            throw new ValidatorErr(fie, 'regexp', moduleName)
+            throw new ValidatorErr(fie, 'regexp', moduleName, conf)
         if (conf.hasOwnProperty('range')) {
             const rangeArr = this._isType(range, Array) ? range : [range]
             let matched = false
@@ -181,7 +178,7 @@ class ParamValidator {
                 if (str === fieData) matched = true
             })
             if (!matched)
-                throw new ValidatorErr(fie, 'range', moduleName)
+                throw new ValidatorErr(fie, 'range', moduleName, conf)
         }
     }
 
@@ -192,9 +189,9 @@ class ParamValidator {
          */
         const { range, int } = conf
         if (!this._isType(fieData, Number))
-            throw new ValidatorErr(fie, 'type', moduleName)
+            throw new ValidatorErr(fie, 'type', moduleName, conf)
         if (int && fieData !== Number(fieData.toFixed()))
-            throw new ValidatorErr(fie, 'int', moduleName)
+            throw new ValidatorErr(fie, 'int', moduleName,conf)
         if (conf.hasOwnProperty('range')) {
             const rangeObj = range
             if (this._isType(rangeObj, Array) || this._isType(rangeObj, Number)) {
@@ -204,7 +201,7 @@ class ParamValidator {
                     if (val === fieData) matched = true
                 })
                 if (!matched)
-                    throw new ValidatorErr(fie, 'range', moduleName)
+                    throw new ValidatorErr(fie, 'range', moduleName, conf)
             } else if (this._isType(rangeObj, Object)) {
                 const { "<": max, ">": min, "<=": maxE, ">=": minE } = rangeObj
                 let matched = true
@@ -221,7 +218,7 @@ class ParamValidator {
                     if (fieData < minE) matched = false
                 }
                 if (!matched)
-                    throw new ValidatorErr(fie, 'range', moduleName)
+                    throw new ValidatorErr(fie, 'range', moduleName, conf)
             }
         }
     }
@@ -233,7 +230,7 @@ class ParamValidator {
          */
         const { range } = conf
         if (!this._isType(fieData, Boolean))
-            throw new ValidatorErr(fie, 'type', moduleName)
+            throw new ValidatorErr(fie, 'type', moduleName, conf)
         if (conf.hasOwnProperty('range')) {
             const rangeArr = this._isType(range, Array) ? range : [range]
             let matched = false
@@ -241,7 +238,7 @@ class ParamValidator {
                 if (val === fieData) matched = true
             })
             if (!matched)
-                throw new ValidatorErr(fie, 'range', moduleName)
+                throw new ValidatorErr(fie, 'range', moduleName, conf)
         }
     }
 
@@ -251,7 +248,7 @@ class ParamValidator {
          * empty type validator
          */
         if (!this._isType(fieData, type))
-            throw new ValidatorErr(fie, 'type', moduleName)
+            throw new ValidatorErr(fie, 'type', moduleName, conf)
     }
 
     _classV(fie, conf, fieData, type) {
@@ -260,7 +257,7 @@ class ParamValidator {
          * Class type validator
          */
         if (!this._isType(fieData, type))
-            throw new ValidatorErr(fie, 'type', moduleName)
+            throw new ValidatorErr(fie, 'type', moduleName, conf)
     }
 
     _objectV(fie, conf, fieData) {
@@ -269,7 +266,7 @@ class ParamValidator {
          * Object type validator
          */
         if (!this._isType(fieData, Object))
-            throw new ValidatorErr(fie, 'type', moduleName)
+            throw new ValidatorErr(fie, 'type', moduleName, conf)
         if (conf.hasOwnProperty('objItems') || conf.hasOwnProperty('items')) {
             const itemsModel = conf.objItems || conf.items
             this._emitter(itemsModel, fieData)
@@ -282,7 +279,7 @@ class ParamValidator {
          * Array type validator
          */
         if (!this._isType(fieData, Array))
-            throw new ValidatorErr(fie, 'type', moduleName)
+            throw new ValidatorErr(fie, 'type', moduleName, conf)
         if (conf.hasOwnProperty('arrItems') || conf.hasOwnProperty('items')) {
             const arrayModelScope = {}
             arrayModelScope[fie] = conf.arrItems || conf.items
@@ -298,11 +295,16 @@ class ParamValidator {
         return ValidatorDeepClone(copyObj, toObj)
     }
 
-    _requiredC(oriConf) {
+    _completeConfig(oriConf) {
         /**
-         * Complete 'required' field
+         * Complete data model config
          */
-        const conf = oriConf
+        let conf
+        if (!this._isType(oriConf,Object)) {
+            conf = {type: oriConf}
+        } else {
+            conf = oriConf
+        }
         conf.required = conf.hasOwnProperty('required') ? conf.required : true
         return conf
     }
@@ -322,10 +324,11 @@ class ParamValidator {
  * 错误类
  */
 class ValidatorErr {
-    constructor(errorField, errorType, errorModule) {
+    constructor(errorField, errorType, errorModule, errorModel) {
         this.errorField = errorField
         this.errorType = errorType
         this.errorModule = errorModule
+        this.errorModel = errorModel
         this.msg = `[Validator]"${errorModule.toUpperCase()}" throw an error ---at "${errorField}" ---errorType:"${errorType}"`
     }
 
