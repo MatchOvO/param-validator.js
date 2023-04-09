@@ -1,7 +1,14 @@
-const ParamValidator = require('./param-validator.js')
+import ParamValidator from '../index.mjs'
+
 const peopleModel = {
-    name:String,
-    age:[Number,String],
+    name:{
+        type: String,
+        minLen: 3
+    },
+    age:{
+        type: Number,
+        isNaN: true
+    },
     things:{
         type:[Array,Object],
         arrItems:{
@@ -29,11 +36,9 @@ const validator = new ParamValidator(peopleModel)
 
 const person = {
     name:'Match',
-    age:19,
+    age:NaN,
     things:{
         test:'M'
     }
 }
 console.log( validator.check(person) )// true
-
-

@@ -1,7 +1,7 @@
 # Param-Validator.js
 * Author: [MatchOvO](https://github.com/MatchOvO/)
 * Repository: [param-validator.js](https://github.com/MatchOvO/param-validator.js)
-* Current Version: `1.2.0`
+* Current Version: `1.3.1`
 * An easy and lightweight way to validate params in Javascript Object.
 You can use it to validate the http request data in Node.js or the form data in web
 min.js is less than 10k, so that you can use it in your project without any burden.
@@ -219,7 +219,7 @@ const dataModel = {
         required:false
     },
     score:{
-        type:[Number,String]// it can be Number or String
+        type:[Number,String],// it can be Number or String
         default: 60
     }
 }
@@ -247,8 +247,14 @@ console.log( validator.test(data2) ) // true
     * `regexp`: `RegExp`
         * To specify the RegExp that param need to match
         * default: `true`
-    * `empty`: `Boolean`
+    * `empty`: `Boolean` (After Version 1.3.0)
       * To specific the if the String can be an empty String
+    * `length`: `Number` (After Version 1.3.0)
+      * To specific the length of the String, is validate by the property [String: length](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String/length)
+    * `maxLen`: `Number` (After Version 1.3.0)
+      * To specific the max length of the String
+    * `minLen`: `Number` (After Version 1.3.0)
+      * To specific the min length of the String
 ```js
 const dataModel = {
     name:{
@@ -277,6 +283,9 @@ console.log(validator.test({
     * `int`: `Boolean`
         * To specify the value must be int or not(the int here is not a real int. For example,`90.0` is also an int here)
         * default: `false`
+    * `isNaN`: `Boolean` (After Version 1.3.0)
+      * To specify the value is [NaN](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/NaN) or not
+      * default: `false`
 ```js
 const dataModel = {
     score:{

@@ -180,6 +180,18 @@ class ParamValidator {
             if (!matched)
                 throw new ValidatorErr(fie, 'range', moduleName, conf)
         }
+        if (conf.hasOwnProperty('length')) {
+            if (fieData.length !== conf.length)
+                throw new ValidatorErr(fie, 'length', moduleName, conf)
+        }
+        if (conf.hasOwnProperty('maxLen')) {
+            if (fieData.length > conf.maxLen)
+                throw new ValidatorErr(fie, 'maxLen', moduleName, conf)
+        }
+        if (conf.hasOwnProperty('minLen')) {
+            if (fieData.length < conf.minLen)
+                throw new ValidatorErr(fie, 'minLen', moduleName, conf)
+        }
     }
 
     _numberV(fie, conf, fieData) {
@@ -187,7 +199,7 @@ class ParamValidator {
         /**
          * Number type validator
          */
-        const { range, int } = conf
+        const { range, int, isNaN } = conf
         if (!this._isType(fieData, Number))
             throw new ValidatorErr(fie, 'type', moduleName, conf)
         if (int && fieData !== Number(fieData.toFixed()))
@@ -220,6 +232,11 @@ class ParamValidator {
                 if (!matched)
                     throw new ValidatorErr(fie, 'range', moduleName, conf)
             }
+        }
+        if (conf.hasOwnProperty('isNaN')){
+            const result = Number.isNaN(fieData) === isNaN
+            if (!result)
+                throw new ValidatorErr(fie, 'isNaN', moduleName, conf)
         }
     }
 
@@ -379,4 +396,8 @@ function ValidatorDeepClone(copyObj, toObj) {
     return newObj;
 }
 
-module.exports = ParamValidator;
+if (typeof exports === 'object' && typeof module !== 'undefined') {
+    module.exports = ParamValidator;
+} else {
+    exports.default = ParamValidator;
+}
