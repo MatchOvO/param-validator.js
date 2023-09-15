@@ -1,5 +1,5 @@
 //! param-validator.js
-//! version : 1.3.1
+//! version : 1.4.0
 //! authors : MatchOvO
 //! license : MIT
 //! https://github.com/MatchOvO/param-validator.js

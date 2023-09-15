@@ -1,4 +1,5 @@
 import ParamValidator from '../index.mjs'
+const {Email} = ParamValidator
 
 const peopleModel = {
     name:{
@@ -9,6 +10,7 @@ const peopleModel = {
         type: Number,
         isNaN: true
     },
+    email: Email,
     things:{
         type:[Array,Object],
         arrItems:{
@@ -37,6 +39,7 @@ const validator = new ParamValidator(peopleModel)
 const person = {
     name:'Match',
     age:NaN,
+    email: '1033085048@qq.com',
     things:{
         test:'M'
     }

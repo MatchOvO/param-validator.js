@@ -1,8 +1,9 @@
 //! param-validator.js
-//! version : 1.1.0
+//! version : 1.4.0
 //! authors : MatchOvO
 //! license : MIT
 //! https://github.com/MatchOvO/param-validator.js
+let regexpLibrary = require('./regexpLibrary')
 class ParamValidator {
     constructor(dataModel) {
         /**
@@ -40,6 +41,8 @@ class ParamValidator {
     static deepClone(copyObj, toObj) {
         return ValidatorDeepClone(copyObj, toObj)
     }
+
+    static regexpLibrary = regexpLibrary
 
     /**
      * 校验数据是否符合数据模型
@@ -95,65 +98,96 @@ class ParamValidator {
         const data = dataScope
         for (const field in modelScope) {
             let conf = modelScope[field]
+            // transform the simple model to completed model
             conf = this._completeConfig(conf)
-            if (!data.hasOwnProperty(field) && conf.required) throw new ValidatorErr(field, 'required', moduleName, conf)
-            const typeArr = this._isType(conf.type, Array) ? conf.type : [conf.type]
-            if (!data.hasOwnProperty(field) && !conf.required) {
-                data[field] = conf.default
-                typeArr.push(undefined)
+            // inject custom function
+            let enableNormalProcedure = true
+            if (conf.hasOwnProperty("custom")) {
+                const customFunction = conf.custom
+                const customFunctionTools = {
+                    alter(newValue) {
+                        data[field] = newValue
+                    },
+                    alterConfig(key, value) {
+                        conf[key] = value
+                    },
+                    ignore() {
+                        enableNormalProcedure = false
+                    },
+                    ParamValidator
+                }
+                const customFunctionResult = customFunction.apply(customFunctionTools, [data[field], field, conf, data])
+                if (!this._isType(customFunctionResult, Boolean)) {
+                    throw new Error("[Validator]: custom function need a return that must be the type of boolean")
+                } else {
+                    if (!customFunctionResult) throw new ValidatorErr(field, 'custom', moduleName, conf)
+                }
             }
-            const fieldData = data[field]
-            try {
-                typeArr.forEach((type, index) => {
-                    try {
-                        switch (type) {
-                            case String:
-                                this._stringV(field, conf, fieldData)
-                                break
-                            case Number:
-                                this._numberV(field, conf, fieldData)
-                                break
-                            case Boolean:
-                                this._booleanV(field, conf, fieldData)
-                                break
-                            case Object:
-                                this._objectV(field, conf, fieldData)
-                                break
-                            case Array:
-                                this._arrayV(field, conf, fieldData)
-                                break
-                            // case 'undefined':
-                            //     this._emptyV(field, conf, fieldData, undefined)
-                            //     break
-                            default:
-                                if (!type) {
+            if (enableNormalProcedure) {
+                // check if the data fulfill the requirement of the "required" option
+                if (!data.hasOwnProperty(field) && conf.required) throw new ValidatorErr(field, 'required', moduleName, conf)
+                // handle "type" option
+                const typeArr = this._isType(conf.type, Array) ? conf.type : [conf.type]
+                if (!conf.required) typeArr.push(undefined)
+                // give the default value if there is no given value and the filed is required
+                if (!data.hasOwnProperty(field) && !conf.required) {
+                    data[field] = conf.default
+                }
+                if (conf.hasOwnProperty('default') && data[field] === undefined && !conf.required) data[field] = conf.default
+                const fieldData = data[field]
+                try {
+                    typeArr.forEach((type, index) => {
+                        try {
+                            switch (type) {
+                                case String:
+                                    this._stringV(field, conf, fieldData)
+                                    break
+                                case Number:
+                                    this._numberV(field, conf, fieldData)
+                                    break
+                                case Boolean:
+                                    this._booleanV(field, conf, fieldData)
+                                    break
+                                case Object:
+                                    this._objectV(field, conf, fieldData)
+                                    break
+                                case Array:
+                                    this._arrayV(field, conf, fieldData)
+                                    break
+                                // case 'undefined':
+                                //     this._emptyV(field, conf, fieldData, undefined)
+                                //     break
+                                default:
+                                    if (!type) {
 
-                                    this._emptyV(field, conf, fieldData, type)
+                                        this._emptyV(field, conf, fieldData, type)
 
-                                } else if (this._isType(type, Function)) {
+                                    } else if (this._isType(type, Function)) {
 
-                                    this._classV(field, conf, fieldData, type)
+                                        this._classV(field, conf, fieldData, type)
 
-                                } else {
+                                    } else {
 
-                                    throw new ValidatorErr(field, 'model', moduleName, conf)
+                                        throw new ValidatorErr(field, 'model', moduleName, conf)
 
-                                }
-                                break
+                                    }
+                                    break
+                            }
+                            /**
+                             * 无错误抛出成功消息
+                             */
+                            throw new ValidatorSuccess()
+                        } catch (e) {
+                            if (e.name === 'success') throw e
+                            if (index + 1 === typeArr.length)
+                                throw e
                         }
-                        /**
-                         * 无错误抛出成功消息
-                         */
-                        throw new ValidatorSuccess()
-                    } catch (e) {
-                        if (e.name === 'success') throw e
-                        if (index + 1 === typeArr.length)
-                            throw e
-                    }
-                })
+                    })
 
-            } catch (n) {
-                if (n.name !== 'success') throw n
+                } catch (n) {
+                    if (n.name !== 'success') throw n
+                }
+
             }
 
         }
@@ -317,6 +351,9 @@ class ParamValidator {
          * Complete data model config
          */
         let conf
+        if (this._isType(oriConf, BuiltInModel)) {
+            return conf = oriConf
+        }
         if (!this._isType(oriConf,Object)) {
             conf = {type: oriConf}
         } else {
@@ -359,6 +396,7 @@ class ValidatorErr {
      *  -range      值的范围错误
      *  -int        数值整形错误
      *  -model      数据模型错误
+     *  -custom     自定义函数校验不通过
      *
      * Error Module
      *  -emitter    触发器下的错误
@@ -395,6 +433,57 @@ function ValidatorDeepClone(copyObj, toObj) {
     }
     return newObj;
 }
+
+class BuiltInModel {
+    constructor(conf) {
+        for (const option in conf) {
+            this[option] = conf[option]
+        }
+    }
+}
+
+// inject built-in validator (related of regexp)
+for (let type in regexpLibrary) {
+    const regexp = regexpLibrary[type]
+    type = type.slice(0,1).toUpperCase() + type.slice(1)
+    ParamValidator[type] = new BuiltInModel({
+        type: String,
+        regexp
+    })
+}
+
+// Built-in Model
+ParamValidator.Integer = new BuiltInModel({
+    type: Number,
+    int: true
+})
+
+ParamValidator.Float = new BuiltInModel({
+    custom(v) {
+        this.ignore()
+        if (!this.ParamValidator.isType(v, Number)) return false
+        if (v.toFixed() == v) return false
+        return true
+    }
+})
+
+ParamValidator.Even = new BuiltInModel({
+    custom(v) {
+        this.ignore()
+        if (!this.ParamValidator.isType(v, Number)) return false
+        if (v % 2 !== 0) return false
+        return true
+    }
+})
+
+ParamValidator.Odd = new BuiltInModel({
+    custom(v) {
+        this.ignore()
+        if (!this.ParamValidator.isType(v, Number)) return false
+        if (v % 2 === 0) return false
+        return true
+    }
+})
 
 if (typeof exports === 'object' && typeof module !== 'undefined') {
     module.exports = ParamValidator;

@@ -1,8 +1,8 @@
-# Param-Validator.js
+epic# Param-Validator.js
 * Author: [MatchOvO](https://github.com/MatchOvO/)
 * Repository: [param-validator.js](https://github.com/MatchOvO/param-validator.js)
 * More information and doc in (https://paramvalidator.chenzs.com)
-* Current Version: `1.3.2`
+* Current Version: `1.4.0`
 * An easy and lightweight way to validate params in Javascript Object.
 You can use it to validate the http request data in Node.js or the form data in web
 min.js is less than 10k, so that you can use it in your project without any burden.
@@ -88,6 +88,8 @@ console.log(result)// return 'true' when data is matched with dataModel
   * [validator.test()](#validatortestobject)
   * [validator.construct()](#validatorconstructoriobject)
   * [validator.check()](#validatorcheckobject)
+* [Custom Function](#custom-function)
+* [Built-in Model](#built-in-model)
 ### ParamValidator
 * #### ParamValidator.typeof(val)
   * Params:
@@ -165,15 +167,29 @@ Q: What is Data Model?
 > You can follow this doc to create a Data Model for validator
 * #### simple model
   * After the version of 1.2.0
+  * You can specify a simple type or built-in model below for a field:
+      * `Number`
+      * `String`
+      * `Boolean`
+      * `Object`
+      * `Array`
+      * `Class`
+      * `undefined`
+      * `null`
+      * `Built-in Model`(after Version 1.4.0) More details in [Built-in Model](#built-in-model)
   * You can construct a data model with a simple way like:
 ```js
-const personModel_1 = {
+const { Email, Phone } = ParamValidator
+const userModel_1 = {
     name: String,
-    age: Number
+    age: Number,
+    email: Email,
+    phone: Phone
 }
 
 // You can also use an Array, this means the param can be a Number or a String
-const personModel_2 = {
+// WARN: you can not use built-in model like "Email, Phone..." in Array in now version, but it will be published in the future version
+const userModel_2 = {
     name: String,
     age: [Number, String]
 }
@@ -206,8 +222,13 @@ const personModel = {
   * `required`: `Boolean`
     * To specify if the param is required 
     * default: `true`
+  * `custom`: `Function` (after Version 1.4.0)
+    * To give validator a custom function to validate field, the function need a return value that must be Boolean type (true or false). `false` means that the value fail to pass the validation, `true` means the opposite.
+    * custom function tools: contains some built-in functions that you can use in the custom function
+    * More details see [Custom Function](#custom-function)
   * `default`: `any`
     * In this field, you can provide a default value. The field will be filled when the data has no value of this field
+    > ATTENTION: 1.`default` option only works when `required` is `false` 2.the priority of the value specified by `default` is higher than `undefined`, which means if the validated value is `undefined` and you specify a default value, the default value will cover the value of `undefined`
 ```js
 
 const dataModel = {
@@ -535,5 +556,124 @@ console.log(checkReturn)
  *      }      
  * }
  */
+```
+
+### Custom Function
+> Through this way, you can fully customize your validator to create more complicated and more personal validation rules
+* An model property: `custom`: `Function(value, key, config, data)` (after Version 1.4.0)
+    * To give validator a custom function to validate field, the function need a return value that must be Boolean type (true or false). `false` means that the value fail to pass the validation, `true` means the opposite.
+    * custom function tools: contains some built-in functions that you can use in the custom function
+#### Usage
+* In this option when you define a data model, you should give a function that must contain a return value which is type of `Boolean`. 
+* When your custom function return `true`, it means
+* param:
+  * value: the value of the field
+  * key: the key of the value, you figure out which field you are validating
+  * config: you can get the completed config of the data model
+  * data: you can get the whole data that you are validating
+* custom function tools: you can use `this` to get an object containing some method you can use to make some change on the value of the data or something else, it will be more and more method constantly added in. 
+  * alter(newValue: `Any`)
+    * you can use this method to change the value that you are validating
+  * alterConfig(field: `String`, value: `Any`)
+    * you can use this method to change any option in the model config that you are validating
+  * ignore()
+    * if you call this function in custom function, all the validation procedure will be ignored including the validation of type. And that means you don't need to specific any option except the custom function in data model if you decide to use this method. All the work need to be done by your custom function.
+  * ParamValidator
+    * you can access all the method provided by ParamValidator
+```js
+const peopleModel = {
+    name:{
+        type: String,
+        custom: function(name) {
+            const newName = name.toUpperCase()
+            this.alter(newName)
+            if (newName === 'MATCH') {
+                this.alterData('age', 20)
+            }
+            return true;
+        }
+    },
+    age:{
+        type: Number,
+        // if number is not an even then it can't pass the validation
+        custom(age) {
+            if (age % 2 !== 0) return false
+            return true
+        }
+    }
+}
+
+const validator = new ParamValidator(peopleModel)
+
+const person = {
+    name:'Match',
+    age:18
+}
+console.log( validator.check(person) )// true
+```
+
+### Built-in Model
+> ParamValidator provided some Built-in Models, it can help you create data model faster and more conveniently. Built-in Model is essentially a config of data model, which is defined by the ParamValidator author. And the number of Built-in Model will be expended more and more in the future.
+
+After Version 1.4.0
+
+Example of usage:
+```js
+const ParamValidator = require('param-validator.js')
+const {UserName, Password, Email, Phone, Integer} = ParamValidator
+const userModel = {
+    username: UserName,
+    password: Password,
+    email: Email,
+    phone: Phone,
+    age: Integer
+}
+const userValidator = new ParamValidator(userModel)
+const user1 = {
+    username: 'Match_OvO',
+    password: 'Match_12345',
+    email: '1033085048@qq.com',
+    phone: '+861234567890123',
+    age: 20
+}
+console.log(userValidator.test(user1)) //true
+```
+
+List of Built-in Models:
+* Email: `String`
+* Url: `String`
+* IP: `String`
+* ChineseWord: `String`
+* Base64: `String`
+* Phone: `String`
+* Html: `String`
+* IntString: `String`
+* FloatString: `String`
+* UserName: `String`
+* Password: `String`
+* Integer: `Number`
+* Float: `Number`
+* Odd: `Number`
+* Even: `Number`
+
+### RegexpLibrary
+Usage:
+```js
+const {regexpLibrary} = require('param-validator.js')
+```
+```
+{
+    email: /^\w{3,}(\.\w+)*@[A-z0-9]+(\.[A-z]{2,5}){1,2}$/,
+    url: /[a-zA-z]+:\/\/[^\s]*/,
+    IP: /((2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(2[0-4]\d|25[0-5]|[01]?\d\d?)/,
+    ChineseWord: /[\u4e00-\u9fa5]/,
+    base64: /[\/]?([\da-zA-Z]+[\/+]+)*[\da-zA-Z]+([+=]{1,2}|[\/])?/,
+    phone: /^\d{11}$/,
+    html: /^<([a-z]+)([^<]+)*(?:>(.*)<\/\1>|\s+\/>)$/,
+    intString: /^[0-9]+$/,
+    floatString: /^[0-9]+\.[0-9]+$/,
+    userName: /^[a-zA-Z0-9_]{4,16}$/,
+    password: /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+]).{8,}$/
+}
 ```
 
