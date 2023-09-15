@@ -1,4 +1,4 @@
-epic# Param-Validator.js
+# Param-Validator.js
 * Author: [MatchOvO](https://github.com/MatchOvO/)
 * Repository: [param-validator.js](https://github.com/MatchOvO/param-validator.js)
 * More information and doc in (https://paramvalidator.chenzs.com)
