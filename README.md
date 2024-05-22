@@ -2,7 +2,7 @@
 * Author: [MatchOvO](https://github.com/MatchOvO/)
 * Repository: [param-validator.js](https://github.com/MatchOvO/param-validator.js)
 * More information and doc in (https://paramvalidator.chenzs.com)
-* Current Version: `1.4.0`
+* Current Version: `2.0.0`
 * An easy and lightweight way to validate params in Javascript Object.
 You can use it to validate the http request data in Node.js or the form data in web
 min.js is less than 10k, so that you can use it in your project without any burden.
@@ -12,7 +12,8 @@ All you need to do is to define a "dataModel" in a simple way like:
 const dataModel = {
     anString: String,
     anNumber: Number,
-    anObject: Object
+    anObject: Object,
+    age: [Number, String]
 }
 ```
 Or more specific config like:
@@ -41,26 +42,25 @@ const dataModel = {
 * [Easy Start](#easy-start)
 * [API](#api)
 ## Easy Start
-### Install (安装)
+### Install
 ```
 npm install param-validator.js
 ```
 
-### import (导入)
+### import
 ```js
 const ParamValidator = require('param-validator.js')
 ```
 
-### construct validator model (构建校验模型)
+### construct validator model
 ```js
-const dataModel = {
+const validator = new ParamValidator({
     name: String,
     age: Number
-}
-const validator = new ParamValidator(dataModel)
+})
 ```
 
-### quick validate(快速校验)
+### quick validate
 ```js
 const data = {
     name:'match',
@@ -101,6 +101,7 @@ console.log(result)// return 'true' when data is matched with dataModel
       * 'Boolean'
       * 'Object'
       * 'Array'
+      * 'Function'
       * 'undefined'
       * 'null'
       * className
@@ -126,8 +127,10 @@ console.log(ParamValidator.typeof(person))// 'Person'
           * `Boolean`
           * `Object`
           * `Array`
+          * `Function`
           * `undefined`
           * `null`
+          * `Map`, `Set`...
     * Return:
         * `Boolean`
 > provide a method to check if a value can match the type you give
@@ -142,8 +145,9 @@ class Person {
 }
 const person = new Person()
 console.log(ParamValidator.isType(person,Person))// true
+console.log(ParamValidator.isType(person,Object))// false
 ```
-* #### ParamValidator.deepClone(copyObject,newObject)
+* #### ParamValidator.deepClone(copyObject,newObject) `@deprecated`
     * Params:
         * `copyObject`: the Object you want to clone
           * required: true
@@ -153,7 +157,7 @@ console.log(ParamValidator.isType(person,Person))// true
         * `Object`: the new Object
 > provide a method to deep clone an Object
 
-> Warn: not sure this method will be provided in the future version.
+> Warn: this method is no longer supported after version 2.0.0
 
 ### Data Model
 
@@ -173,6 +177,7 @@ Q: What is Data Model?
       * `Boolean`
       * `Object`
       * `Array`
+      * `Function`
       * `Class`
       * `undefined`
       * `null`
@@ -188,7 +193,7 @@ const userModel_1 = {
 }
 
 // You can also use an Array, this means the param can be a Number or a String
-// WARN: you can not use built-in model like "Email, Phone..." in Array in now version, but it will be published in the future version
+// WARN: you can not use built-in model like "Email, Phone..." in Array in now version
 const userModel_2 = {
     name: String,
     age: [Number, String]
@@ -216,6 +221,7 @@ const personModel = {
       * `Boolean`
       * `Object`
       * `Array`
+      * `Function`
       * `Class`
       * `undefined`
       * `null`
@@ -305,9 +311,9 @@ console.log(validator.test({
     * `int`: `Boolean`
         * To specify the value must be int or not(the int here is not a real int. For example,`90.0` is also an int here)
         * default: `false`
-    * `isNaN`: `Boolean` (After Version 1.3.0)
-      * To specify the value is [NaN](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/NaN) or not
-      * default: `false`
+    * `enableNaN`: `Boolean` (After Version 1.3.0)
+      * default: `true`(sloppy mode) | `false`(strict mode)
+      * To specify if the value can be a [NaN](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/NaN)
 ```js
 const dataModel = {
     score:{
@@ -335,6 +341,9 @@ console.log(validator.test({
       [param-validator.js]() make a promise that `emitter` in validator will do recursion to reach the whole Data Model
     * `objItems`: `Object` (After Version 1.1.0)
       * This property's function is the same as "items". 
+    * `enableClimb`: `Boolean`
+      * default: `true`(sloppy mode) | `false`(strict mode)
+      * If `true`, validator will climb and find if the prototype property of a constructor appears anywhere in the prototype chain of an object. And the adjustment rule is the same as [instanceof](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof)
 > In order to distinguish "items" in Object and Array, we add `objItems | arrItems` you can use after the version of 1.1.0. 
 We recommend you to use this property when a data model you set can be Object or Array( type: [Object,Array] )
 ```js
@@ -413,9 +422,20 @@ const person = {
 }
 console.log( validator.test(person) )// true
 ```
+* #### Function
+  * `name`: `String`
+    * To specific function's name
+  * `length`: `Number`
+    * To specific the number of parameters
+  * `enableAsync`: `Boolean`
+    * default: `true`(sloppy mode) | `false`(strict mode)
+    * if `true`, async function can pass the validation. Otherwise, it can't.
 * #### Class
-    > When type is a class, [param-validator.js]() also can accept it and validate if the object is the instance of the class. 
-But you can not set items to do recursion inside the object. Because it is not necessary and it's dangerous. If you did need that, please use type `Object` 
+  * `enableClimb`: `Boolean`
+      * default: `true`(sloppy mode) | `false`(strict mode)
+      * If `true`, validator will climb and find if the prototype property of a constructor appears anywhere in the prototype chain of an object. And the adjustment rule is the same as [instanceof](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof)
+>   When type is a class, [param-validator.js]() also can accept it and validate if the object is the instance of the class. 
+    But you can not set items to do recursion inside the object. Because it is not necessary and it's dangerous. If you did need that, please use type `Object` and set `enableClimb` as `true`
 ```js
 class Person {
     constructor(name,age){
@@ -501,26 +521,31 @@ console.log(newObj)// {name:"Match",age:18}
           * msg: `String`
  ```js
 /**
-     * Error Type
-     *  -required   必须的字段为空
-     *  -type       类型错误
-     *  -empty      字符串为空错误
-     *  -regexp     字符串正则错误
-     *  -range      值的范围错误
-     *  -int        数值整形错误
-     *  -model      数据模型错误
-     *  -unknown    未知错误
-     *  
-     * Error Module
-     *  -emitter    触发器下的错误
-     *  -stringV    字符串校验器的错误
-     *  -numberV    数值类型校验器的错误
-     *  -objectV    对象校验器的错误
-     *  -arrayV     数组校验器的错误
-     *  -booleanV   布尔值校验器的错误
-     *  -emptyV     空值类型校验器的错误（undefined，null）
-     *  -classV     类校验器的错误
-     */
+ * Error Type
+ *  -required   必须的字段为空
+ *  -type       类型错误
+ *  -empty      字符串为空错误
+ *  -regexp     字符串正则错误
+ *  -unknown    未知错误
+ *  -range      值的范围错误
+ *  -int        数值整形错误
+ *  -model      数据模型错误
+ *  -custom     自定义函数校验不通过
+ *  -function-name  函数名称错误
+ *  -arguments-length 函数形参长度错误
+ *  -deprecated function 被废弃的方法
+ *
+ * Error Module
+ *  -emitter    触发器下的错误
+ *  -stringV    字符串校验器的错误
+ *  -numberV    数值类型校验器的错误
+ *  -objectV    对象校验器的错误
+ *  -arrayV     数组校验器的错误
+ *  -booleanV   布尔值校验器的错误
+ *  -emptyV     空值类型校验器的错误（undefined，null）
+ *  -classV     类校验器的错误
+ *  -static     静态方法的错误
+ */
 ```
 > provide a method to validate if the object can match the data model you give and construct a new object just like [construct()](#validatorconstructoriobject).
 And return more detail message when validate fail. Through this you can locate the reason more conveniently, and provided more specific error reasons to frontend when you use param-validator.js as validator in http server
@@ -638,6 +663,21 @@ const user1 = {
 }
 console.log(userValidator.test(user1)) //true
 ```
+* #### BuiltInModel.prototype.extend(ModelConfig:`Object`)
+  * ModelConfig: `Object`
+    If you want to customize the built-in models, for example, you want to set a field as `Email`, but this field is not necessary needed.
+    You can use method: extend(), to provide your own config.
+    And your config will cover the pre-existed config.
+```js
+const {Email, Integer}  = require('param-validator.js')
+const validator = new ParamValidator({
+    email: Email.extend({required: false}),
+    age: Integer.extend({int: false})
+})
+console.log(validator.test({
+    age: 18.2
+})) // true
+```
 
 List of Built-in Models:
 * Email: `String`
@@ -655,6 +695,7 @@ List of Built-in Models:
 * Float: `Number`
 * Odd: `Number`
 * Even: `Number`
+* AsyncFunction: `Function`
 
 ### RegexpLibrary
 Usage:
