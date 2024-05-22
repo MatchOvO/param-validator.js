@@ -1,6 +1,6 @@
 {
     "name": "param-validator.js",
-    "version": "1.4.0",
+    "version": "2.0.0",
     "description": "validate params in Object",
     "homepage": "https://paramvalidator.chenzs.com",
     "author": "MatchOvO(https://github.com/MatchOvO/)",

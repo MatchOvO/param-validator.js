@@ -91,6 +91,31 @@ console.log(result)// return 'true' when data is matched with dataModel
 * [Custom Function](#custom-function)
 * [Built-in Model](#built-in-model)
 ### ParamValidator
+* #### ParamValidator.constructor(dataModel: `Object`, mode: `String`, forceGlobalDeepClone: `Boolean`)
+  * dataModel: provide the [Data Model](#data-model) Object
+  * mode: `'strict' | 'sloppy'`
+  * forceGlobalDeepClone:
+    * default: 'false'
+    * If `true`, it will force validator clone every property before validate the data you provide.
+    >Normally, validator will not clone the Custom Class or the class that is provided by Javascript Engine, such as Date, Promise...
+    Because of the concern about performance, and we think is dangerous and is not necessary.
+    Because the property of custom class and the js engine's class are usually managed by the constructor of a class. 
+    So as normal, we will not clone this kind of object, and we promise we will not alter the content in this kind of object.
+    Unless you use `sloppy` mode or set `enableClimb` as true.
+```js
+const strictValidator = new ParamValidator({
+    obj: Object
+}, "strict")
+
+const sloppyValidator = new ParamValidator({
+    obj: Object
+}, "sloppy")
+class Person {}
+const person = new Person()
+strictValidator.test({obj: person}) //false
+sloppyValidator.test({obj: person}) //true
+
+```
 * #### ParamValidator.typeof(val)
   * Params:
     * `val`: value that you want to check

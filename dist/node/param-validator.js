@@ -625,7 +625,7 @@ function ValidatorDeepCloneGlobal(target) {
 
 class BuiltInModel {
     /**
-     *
+     * @constructor To construct an instance of BuiltInModel
      * @param {ModelConfig} conf
      */
     constructor(conf) {
